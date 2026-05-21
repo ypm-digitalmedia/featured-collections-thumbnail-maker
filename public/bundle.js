@@ -1951,7 +1951,7 @@ Crop Bounding Box:
   Width: ${Math.round(cropData.width)}px
   Height: ${Math.round(cropData.height)}px`;
         document.getElementById("debug-info").textContent = debugInfo;
-        const guid = document.getElementById("input-guid").value;
+        const guid = window.currentGuid;
         const x = Math.round(cropData.x);
         const y = Math.round(cropData.y);
         const width = Math.round(cropData.width);
@@ -1965,6 +1965,24 @@ Crop Bounding Box:
         if (!cropperInstance) return;
         cropperInstance.reset();
       }
+      function extractGuid(input) {
+        if (!input) return { guid: null, error: "Please enter a GUID or IIIF URL" };
+        if (input.includes("https://")) {
+          const match = input.match(/ypm:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+          if (match) {
+            const guid2 = match[1];
+            console.log("Extracted GUID from URL:", guid2);
+            return { guid: guid2, error: null };
+          } else {
+            const errorMsg = "Could not extract GUID from URL. Expected format with ypm: prefix";
+            console.error(errorMsg);
+            return { guid: null, error: errorMsg };
+          }
+        }
+        const guid = input.trim();
+        console.log("Using direct GUID:", guid);
+        return { guid, error: null };
+      }
       var inputElement = document.getElementById("input-guid");
       function loadImageToCanvas() {
         if (!inputElement) {
@@ -1972,13 +1990,17 @@ Crop Bounding Box:
           console.log("Available elements:", document.querySelectorAll("input"));
           return;
         }
-        const guid = inputElement.value;
+        const inputValue = inputElement.value;
+        const { guid, error } = extractGuid(inputValue);
         if (!guid) {
-          console.error("GUID input is empty");
+          const loader = document.getElementById("loader");
+          loader.innerHTML = `<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>${error}</p></div>`;
           return;
         }
+        window.currentGuid = guid;
         const imageUrl = `${imgUrlPrefix}${guid}/full/max/0/default.jpg`;
         console.log("Loading image from:", imageUrl);
+        console.log("Extracted GUID:", guid);
         const imgElement = document.getElementById("canvas");
         imgElement.onload = () => {
           imgElement.style.display = "block";
@@ -2012,7 +2034,7 @@ Crop Bounding Box:
         imgElement.onerror = () => {
           console.error("Failed to load image from:", imageUrl);
           const loader = document.getElementById("loader");
-          loader.innerHTML = '<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>Error loading image</p><p style="font-size: 0.9em;">Please check the GUID and try again.</p></div>';
+          loader.innerHTML = '<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>Error loading image</p><p style="font-size: 0.9em;">Please verify the image exists in Yale Collections and try again.</p></div>';
         };
         imgElement.crossOrigin = "anonymous";
         imgElement.src = imageUrl;

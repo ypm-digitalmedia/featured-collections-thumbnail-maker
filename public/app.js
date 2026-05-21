@@ -26,8 +26,8 @@ Crop Bounding Box:
     
     document.getElementById('debug-info').textContent = debugInfo;
     
-    // Update preview URL
-    const guid = document.getElementById('input-guid').value;
+    // Update preview URL using the extracted GUID
+    const guid = window.currentGuid;
     const x = Math.round(cropData.x);
     const y = Math.round(cropData.y);
     const width = Math.round(cropData.width);
@@ -47,6 +47,32 @@ function recenterImage() {
     cropperInstance.reset();
 }
 
+// Extract GUID from either full URL or just the GUID
+// Returns { guid, error } object
+function extractGuid(input) {
+    if (!input) return { guid: null, error: 'Please enter a GUID or IIIF URL' };
+    
+    // Check if it's a full URL (contains https://)
+    if (input.includes('https://')) {
+        // Extract GUID from URL: look for "ypm:" followed by the GUID (UUID format)
+        const match = input.match(/ypm:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+        if (match) {
+            const guid = match[1];
+            console.log('Extracted GUID from URL:', guid);
+            return { guid, error: null };
+        } else {
+            const errorMsg = 'Could not extract GUID from URL. Expected format with ypm: prefix';
+            console.error(errorMsg);
+            return { guid: null, error: errorMsg };
+        }
+    }
+    
+    // Otherwise treat it as a direct GUID
+    const guid = input.trim();
+    console.log('Using direct GUID:', guid);
+    return { guid, error: null };
+}
+
 const inputElement = document.getElementById('input-guid');
 
 // Load and draw image from IIIF URL to canvas
@@ -58,15 +84,21 @@ function loadImageToCanvas() {
         return;
     }
     
-    const guid = inputElement.value;
+    const inputValue = inputElement.value;
+    const { guid, error } = extractGuid(inputValue);
     
     if (!guid) {
-        console.error('GUID input is empty');
+        const loader = document.getElementById('loader');
+        loader.innerHTML = `<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>${error}</p></div>`;
         return;
     }
     
+    // Store the GUID for later use in preview URL generation
+    window.currentGuid = guid;
+    
     const imageUrl = `${imgUrlPrefix}${guid}/full/max/0/default.jpg`;
     console.log('Loading image from:', imageUrl);
+    console.log('Extracted GUID:', guid);
     
     const imgElement = document.getElementById('canvas');
     
@@ -112,7 +144,7 @@ function loadImageToCanvas() {
     imgElement.onerror = () => {
         console.error('Failed to load image from:', imageUrl);
         const loader = document.getElementById('loader');
-        loader.innerHTML = '<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>Error loading image</p><p style="font-size: 0.9em;">Please check the GUID and try again.</p></div>';
+        loader.innerHTML = '<div style="text-align: center; color: #d32f2f; font-family: Mallory MP, sans-serif;"><p>Error loading image</p><p style="font-size: 0.9em;">Please verify the image exists in Yale Collections and try again.</p></div>';
     };
     
     imgElement.crossOrigin = 'anonymous';
