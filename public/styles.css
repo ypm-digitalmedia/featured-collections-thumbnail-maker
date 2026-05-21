@@ -6,6 +6,7 @@
     src: url('/fonts/MalloryMP-Light.otf') format('opentype');
     font-weight: 300;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -13,6 +14,7 @@
     src: url('/fonts/MalloryMP-Book.otf') format('opentype');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -20,6 +22,7 @@
     src: url('/fonts/MalloryMP-Medium.otf') format('opentype');
     font-weight: 500;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -27,6 +30,7 @@
     src: url('/fonts/MalloryMP-Bold.otf') format('opentype');
     font-weight: 600;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -34,6 +38,7 @@
     src: url('/fonts/MalloryMP-Bold.otf') format('opentype');
     font-weight: 700;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -41,6 +46,7 @@
     src: url('/fonts/MalloryMP-Black.otf') format('opentype');
     font-weight: 900;
     font-style: normal;
+    font-display: swap;
 }
 
 /* Body Default - Mallory MP Light */
@@ -154,6 +160,11 @@ main#app {
 .loader img {
     max-width: 200px;
     max-height: 200px;
+    font-size: 0;
+}
+
+.loader img:broken {
+    display: none;
 }
 
 .loader.hidden {
